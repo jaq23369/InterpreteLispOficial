@@ -18,7 +18,7 @@ public class LispInterpreter {
     public Object interpret(String expression) {
         try {
             List<Object> parsedExpression = parser.parse(expression);
-            return evaluator.evaluate(parsedExpression);
+            return evaluator.evaluate(parsedExpression, environment);
         } catch (IllegalArgumentException e) {
             return "Syntax Error: " + e.getMessage();
         } catch (ArithmeticException e) {
