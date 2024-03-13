@@ -12,33 +12,76 @@ public class ExpressionEvaluator {
         this.environment = environment;
     }
 
-    public Object evaluate(List<Object> expression, Environment currentEnvironment) {
-        if (expression.isEmpty()) {
+    public Object evaluate(List<Object> expression, Environment currentEnvironment) {        if (expression.isEmpty()) {
             throw new IllegalArgumentException("Empty expression");
         }
 
-        String operator = (String) expression.get(0);
+        List<Object> modifiableExpression = new ArrayList<>(expression);
+
+    Object firstElement = modifiableExpression.get(0);
+    if (firstElement instanceof String && currentEnvironment.isVariableDefined((String) firstElement)) {
+        firstElement = currentEnvironment.getVariableValue((String) firstElement);
+        modifiableExpression.set(0, firstElement);
+    }
+
+    if (!(firstElement instanceof String)) {
+        throw new IllegalArgumentException("The first element of the expression must be a string representing an operator or a function name.");
+    }
+
+    String operator = (String) firstElement;
+    List<Object> rawOperands = modifiableExpression.subList(1, modifiableExpression.size());
+    
+    // Aquí es donde vamos a procesar los operandos antes del switch.
+    List<Object> operands = rawOperands.stream()
+        .map(operand -> {
+            if (operand instanceof List) {
+                // Es una subexpresión, evalúala.
+                return evaluate((List<Object>) operand, currentEnvironment);
+            } else if (operand instanceof String && currentEnvironment.isVariableDefined((String) operand)) {
+                // Es una variable, obtén su valor.
+                return currentEnvironment.getVariableValue((String) operand);
+            } else {
+                // De lo contrario, devuelve el operando como está.
+                return operand;
+            }
+        })
+        .collect(Collectors.toList());
+
         switch (operator) {
             case "+":
-                return evaluateArithmetic(expression.subList(1, expression.size()), operator);
+                return evaluateArithmetic(operands, operator, currentEnvironment);
             case "-":
-                return evaluateArithmetic(expression.subList(1, expression.size()), operator);
+                return evaluateArithmetic(operands, operator, currentEnvironment);
             case "*":
-                return evaluateArithmetic(expression.subList(1, expression.size()), operator);
+                return evaluateArithmetic(operands, operator, currentEnvironment);
             case "/":
-                return evaluateArithmetic(expression.subList(1, expression.size()), operator);
+                return evaluateArithmetic(operands, operator, currentEnvironment);
             case "cond":
-                return evaluateCond(expression.subList(1, expression.size()), environment);
+                return evaluateCond(operands, currentEnvironment);
             case "car":
-                return car(expression.subList(1, expression.size()), environment);
+                return car( operands, currentEnvironment);
             case "cdr":
-                return cdr(expression.subList(1, expression.size()), environment);
+                return cdr(operands, currentEnvironment);
             
             default:
-                FunctionDefinition function = environment.lookupFunction(operator);
-                List<Object> arguments = evaluateArguments(expression.subList(1, expression.size()), currentEnvironment);
-                return evaluateFunction(function, arguments, currentEnvironment);
+                FunctionDefinition function = currentEnvironment.lookupFunction(operator);
+
+                if (function == null) {
+                    throw new IllegalArgumentException("Function '" + operator + "' is not defined.");
+                }
+
+                List<Object> arguments = evaluateArguments(operands, currentEnvironment);
+                return evaluateFunctionCall(operator, arguments, currentEnvironment);
         }
+    }
+
+    private Object evaluateFunctionCall(String operator, List<Object> operands, Environment currentEnvironment) {
+        FunctionDefinition function = currentEnvironment.lookupFunction(operator);
+        if (function == null) {
+            throw new IllegalArgumentException("Function '" + operator + "' is not defined.");
+        }
+        List<Object> arguments = evaluateArguments(operands, currentEnvironment);
+        return evaluateFunction(function, arguments, currentEnvironment);
     }
 
     private List<Object> evaluateArguments(List<Object> args, Environment env) {
@@ -91,10 +134,16 @@ public class ExpressionEvaluator {
         return result;
     }
 
-    private double evaluateArithmetic(List<Object> operands, String operator) {
+    private double evaluateArithmetic(List<Object> operands, String operator, Environment env) {
         double result = operator.equals("+") || operator.equals("-") ? 0 : 1;
         for (Object obj : operands) {
-            double operand = Double.parseDouble(obj.toString()); // Simplification for example purposes
+            double operand;
+            try {
+                operand = Double.parseDouble(obj.toString());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid operand for arithmetic operation: " + obj, e);
+            }
+            System.out.println("Performing operation: " + operator + " with operand " + operand); // Mensaje de depuración
             switch (operator) {
                 case "+":
                     result += operand;
@@ -111,8 +160,11 @@ public class ExpressionEvaluator {
                     break;
             }
         }
+        System.out.println("Arithmetic operation result: " + result); // Mensaje de depuración
         return result;
     }
+    
+    
 
     private Object evaluateCond(List<Object> clauses, Environment env) {
         for (Object clause : clauses) {

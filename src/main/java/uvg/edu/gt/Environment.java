@@ -25,8 +25,8 @@ public class Environment {
         return this.parent;
     }
 
-    public void defineVariable(String name, Object value) {
-        variables.put(name, value);
+    public void defineVariable(String variablename, Object value) {
+        variables.put(variablename, value);
     }
 
     // Método modificado para buscar en el ámbito actual y luego en los padres
@@ -54,4 +54,21 @@ public class Environment {
         throw new IllegalArgumentException("Function '" + name + "' is not defined.");
     }
 }
+
+// Verifica si una variable está definida en cualquier ámbito
+public boolean isVariableDefined(String variableName) {
+    return variables.containsKey(variableName) || (parent != null && parent.isVariableDefined(variableName));
+}
+
+// Obtiene el valor de una variable definida en cualquier ámbito
+public Object getVariableValue(String variableName) {
+    if (variables.containsKey(variableName)) {
+        return variables.get(variableName);
+    } else if (parent != null) {
+        return parent.getVariableValue(variableName);
+    } else {
+        throw new IllegalArgumentException("Variable '" + variableName + "' is not defined.");
+    }
+}
+
 }

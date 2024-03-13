@@ -7,55 +7,83 @@ import java.util.Stack;
 public class LispParser {
 
     public List<Object> parse(String expression) {
-        List<Object> tokens = new ArrayList<>();
-        String token = "";
         Stack<Object> stack = new Stack<>();
+        stack.push(new ArrayList<>());
+
+        String token = "";
+        System.out.println("Parsing expression: " + expression); // Depuración
 
         for (char c : expression.toCharArray()) {
-            switch (c) {
-                case '(':
-                    if (!token.isEmpty()) {
-                        stack.push(token);
-                        token = "";
-                    }
-                    stack.push(c);
-                    break;
-                case ')':
-                    if (!token.isEmpty()) {
-                        stack.push(token);
-                        token = "";
-                    }
-                    List<Object> subList = new ArrayList<>();
-                    while (!stack.isEmpty() && stack.peek() instanceof String) {
-                        subList.add(0, stack.pop());
-                    }
-                    if (!stack.isEmpty() && stack.peek().equals('(')) {
-                        stack.pop(); // Remove the '('
-                        stack.push(subList);
-                    }
-                    break;
-                case ' ':
-                    if (!token.isEmpty()) {
-                        stack.push(token);
-                        token = "";
-                    }
-                    break;
-                default:
-                    token += c;
-                    break;
+            if (c == '(') {
+                if (!token.isEmpty()) {
+                    addTokenToStack(stack, token);
+                    token = "";
+                }
+                stack.push(new ArrayList<>());
+            } else if (c == ')') {
+                if (!token.isEmpty()) {
+                    addTokenToStack(stack, token);
+                    token = "";
+                }
+                if (stack.size() < 2) {
+                    throw new IllegalArgumentException("Syntax Error: Unbalanced parentheses.");
+                }
+                List<Object> subExpr = castToList(stack.pop());
+                checkIfListAndAdd(stack, subExpr);
+            } else if (c == ' ') {
+                if (!token.isEmpty()) {
+                    addTokenToStack(stack, token);
+                    token = "";
+                }
+            } else if (c == '-' || c == '*' || c == '/') {
+                if (!token.isEmpty()) {
+                    addTokenToStack(stack, token);
+                    token = "";
+                }
+                // Aquí es importante agregar el operador como token directamente al top de la stack
+                addTokenToStack(stack, Character.toString(c));
+            } else {
+                token += c;
             }
         }
-
-        // In case there's a token left at the end (without closing parentheses)
+        
         if (!token.isEmpty()) {
-            stack.push(token);
+            addTokenToStack(stack, token);
         }
-
-        // Flatten the stack into the tokens list
-        while (!stack.isEmpty()) {
-            tokens.add(0, stack.pop());
+        
+        if (stack.size() != 1) {
+            throw new IllegalArgumentException("Syntax Error: Unbalanced parentheses or incomplete expression.");
         }
+        
+        List<Object> result = castToList(stack.pop());
+        System.out.println("Parsed result: " + result); // Depuración
+        return result;
+    }
+        
 
-        return tokens;
+        
+    
+    private void addTokenToStack(Stack<Object> stack, String token) {
+        List<Object> top = castToList(stack.peek());
+        top.add(token);
+    }
+
+    private List<Object> castToList(Object obj) {
+        if (!(obj instanceof List)) {
+            throw new IllegalStateException("Expected a List but found: " + obj);
+        }
+        return (List<Object>) obj;
+    }
+
+    private void checkIfListAndAdd(Stack<Object> stack, List<Object> subExpr) {
+        List<Object> top = castToList(stack.peek());
+        if (!subExpr.isEmpty() && subExpr.get(0).equals("+")) {
+            // Aplanamos si el primer elemento es el operador '+'.
+            top.addAll(subExpr);
+        } else {
+            top.add(subExpr);
+        }
     }
 }
+
+
