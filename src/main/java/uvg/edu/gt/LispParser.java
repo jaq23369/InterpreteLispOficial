@@ -43,6 +43,7 @@ public class LispParser {
                 // Aquí es importante agregar el operador como token directamente al top de la stack
                 addTokenToStack(stack, Character.toString(c));
             } else {
+                System.out.println("aca");
                 token += c;
             }
         }
