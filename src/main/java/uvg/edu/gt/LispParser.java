@@ -35,13 +35,13 @@ public class LispParser {
                     addTokenToStack(stack, token);
                     token = "";
                 }
-            } else if (c == '-' || c == '*' || c == '/') {
-                if (!token.isEmpty()) {
-                    addTokenToStack(stack, token);
-                    token = "";
-                }
-                // Aquí es importante agregar el operador como token directamente al top de la stack
-                addTokenToStack(stack, Character.toString(c));
+            // } else if (c == '-' || c == '*' || c == '/') {
+            //     if (!token.isEmpty()) {
+            //         addTokenToStack(stack, token);
+            //         token = "";
+            //     }
+            //     // Aquí es importante agregar el operador como token directamente al top de la stack
+            //     addTokenToStack(stack, Character.toString(c));
             } else {
                 System.out.println("aca");
                 token += c;
@@ -76,9 +76,10 @@ public class LispParser {
         return (List<Object>) obj;
     }
 
+    
     private void checkIfListAndAdd(Stack<Object> stack, List<Object> subExpr) {
         List<Object> top = castToList(stack.peek());
-        if (!subExpr.isEmpty() && subExpr.get(0).equals("+")) {
+        if (!subExpr.isEmpty() && subExpr.get(0).equals("*")) {
             // Aplanamos si el primer elemento es el operador '+'.
             top.addAll(subExpr);
         } else {
