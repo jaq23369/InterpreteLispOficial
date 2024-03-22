@@ -4,14 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * Esta clase representa un analizador/parser para el lenguaje de programación Lisp.
+ * Permite analizar una cadena de texto que contiene una expresión Lisp y convertirla en una estructura de datos adecuada.
+ */
 public class LispParser {
 
-    public List<Object> parse(String expression) {
+    /**
+     * Analiza una expresión Lisp dada y la convierte en una lista de objetos que representa la estructura de la expresión.
+     * 
+     * @param expression La expresión Lisp a analizar.
+     * @return Una lista de objetos que representa la estructura de la expresión Lisp.
+     * @throws IllegalArgumentException Si hay un error de sintaxis en la expresión Lisp.
+     */
+    public List<Object> parse(String expression) throws IllegalArgumentException {
         Stack<Object> stack = new Stack<>();
         stack.push(new ArrayList<>());
 
         String token = "";
-        System.out.println("Parsing expression: " + expression); // Depuración
 
         for (char c : expression.toCharArray()) {
             if (c == '(') {
@@ -43,7 +53,6 @@ public class LispParser {
                 // Aquí es importante agregar el operador como token directamente al top de la stack
                 addTokenToStack(stack, Character.toString(c));
             } else {
-                System.out.println("aca");
                 token += c;
             }
         }
@@ -56,19 +65,16 @@ public class LispParser {
             throw new IllegalArgumentException("Syntax Error: Unbalanced parentheses or incomplete expression.");
         }
         
-        List<Object> result = castToList(stack.pop());
-        System.out.println("Parsed result: " + result); // Depuración
-        return result;
+        return castToList(stack.pop());
     }
-        
 
-        
-    
+    // Método privado para agregar un token a la stack como parte de la expresión analizada
     private void addTokenToStack(Stack<Object> stack, String token) {
         List<Object> top = castToList(stack.peek());
         top.add(token);
     }
 
+    // Método privado para asegurarse de que un objeto sea una lista
     @SuppressWarnings("unchecked")
     private List<Object> castToList(Object obj) {
         if (!(obj instanceof List)) {
@@ -77,7 +83,7 @@ public class LispParser {
         return (List<Object>) obj;
     }
 
-    
+    // Método privado para verificar si una subexpresión es una lista y agregarla adecuadamente a la stack
     private void checkIfListAndAdd(Stack<Object> stack, List<Object> subExpr) {
         List<Object> top = castToList(stack.peek());
         if (!subExpr.isEmpty() && subExpr.get(0).equals("*")) {
@@ -88,6 +94,3 @@ public class LispParser {
         }
     }
 }
-
-
-
