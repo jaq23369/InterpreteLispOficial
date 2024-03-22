@@ -35,13 +35,13 @@ public class LispParser {
                     addTokenToStack(stack, token);
                     token = "";
                 }
-            // } else if (c == '-' || c == '*' || c == '/') {
-            //     if (!token.isEmpty()) {
-            //         addTokenToStack(stack, token);
-            //         token = "";
-            //     }
-            //     // Aquí es importante agregar el operador como token directamente al top de la stack
-            //     addTokenToStack(stack, Character.toString(c));
+            } else if (c == '-' || c == '*' || c == '/') {
+                if (!token.isEmpty()) {
+                    addTokenToStack(stack, token);
+                    token = "";
+                }
+                // Aquí es importante agregar el operador como token directamente al top de la stack
+                addTokenToStack(stack, Character.toString(c));
             } else {
                 System.out.println("aca");
                 token += c;
