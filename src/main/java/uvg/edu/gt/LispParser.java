@@ -69,6 +69,7 @@ public class LispParser {
         top.add(token);
     }
 
+    @SuppressWarnings("unchecked")
     private List<Object> castToList(Object obj) {
         if (!(obj instanceof List)) {
             throw new IllegalStateException("Expected a List but found: " + obj);
