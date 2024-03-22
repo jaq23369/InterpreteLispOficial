@@ -1,5 +1,7 @@
 package uvg.edu.gt;
 
+import java.util.List;
+
 /**
  * Esta clase representa un intérprete simple para el lenguaje de programación Lisp.
  * Permite interpretar expresiones Lisp, definir variables y funciones, y obtener valores de variables y funciones definidas.
@@ -27,7 +29,6 @@ public class LispInterpreter {
      */
     public Object interpret(String expression) {
         try {
-            // Parsea la expresión y la evalúa en el ambiente actual
             List<Object> parsedExpression = parser.parse(expression);
             return evaluator.evaluate(parsedExpression, environment);
         } catch (IllegalArgumentException e) {
@@ -35,7 +36,7 @@ public class LispInterpreter {
         } catch (ArithmeticException e) {
             return "Math Error: " + e.getMessage();
         } catch (Exception e) {
-            // Captura cualquier excepción no anticipada durante la interpretación
+            // Este es un capturador genérico para cualquier otro tipo de excepción no anticipada.
             return "Interpreter Error: " + e.getMessage();
         }
     }
